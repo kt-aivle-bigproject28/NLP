@@ -1,7 +1,7 @@
 import json
 from text_processing import slice_text
 from model_inference import load_model_and_tokenizer, generate_output
-from json_parser import parse_output_to_json  
+from json_parser import parse_output_to_json
 
 def slice_and_process_text(input_file_path, model_path, tokenizer_path, slice_num=20000, chunk_size=500):
     """
@@ -21,6 +21,7 @@ def slice_and_process_text(input_file_path, model_path, tokenizer_path, slice_nu
     for idx, chunk in enumerate(chunks):
         generated_output = generate_output(tokenizer, model, chunk)
         parsed_output = parse_output_to_json(generated_output)
+
         # JSON 출력
         print(f"청크 {idx + 1} 결과:")
         print(json.dumps(parsed_output, indent=4, ensure_ascii=False))
@@ -35,5 +36,5 @@ def slice_and_process_text(input_file_path, model_path, tokenizer_path, slice_nu
 if __name__ == "__main__":
     input_path = input("텍스트 파일 경로를 입력하세요: ").strip('""')
     model_path = "kobart-summarization-finetuned"
-    tokenizer_path = "kobart-summarization-finetuned"
+    tokenizer_path = "digit82/kobart-summarization"
     slice_and_process_text(input_path, model_path, tokenizer_path)
