@@ -1,5 +1,5 @@
 import re
-import json
+from difflib import SequenceMatcher
 
 def clean_text(text):
     """
@@ -9,17 +9,28 @@ def clean_text(text):
         return text
     # 앞뒤 공백 제거
     text = text.strip()
-    # 이스케이프 문자 제거
+    # 이스케이프 문자 제거 (예: \")
     text = text.replace("\\", "")
-    # 불필요한 따옴표 제거
+    # 불필요한 따옴표 제거 (예: " 또는 '가 시작이나 끝에 있을 때)
     text = re.sub(r'^["\']|["\']$', '', text)
-    # 불필요한 ']', '[', 개행 문자 제거
-    text = text.replace("]", "").replace("[", "").replace("\n", " ").strip()
+    # 불필요한 대괄호 제거
+    text = text.replace("]", "").replace("[", "")
+    # 개행 문자 제거
+    text = text.replace("\n", " ").strip()
     return text
+
+def is_similar(str1, str2, threshold=0.8):
+    """
+    두 문자열의 유사도를 비교합니다. 유사도가 threshold 이상이면 True를 반환합니다.
+    """
+    preprocessed_str1 = clean_text(str1)
+    preprocessed_str2 = clean_text(str2)
+    similarity = SequenceMatcher(None, preprocessed_str1, preprocessed_str2).ratio()
+    return similarity >= threshold
 
 def parse_output_to_json(generated_output):
     """
-    모델의 출력 결과를 JSON 형식으로 변환하며, 텍스트를 전처리합니다.
+    모델의 출력 결과를 JSON 형식으로 변환하며, 중복된 dialogues 항목을 제거합니다.
     """
     parsed_data = {}
     try:
@@ -37,12 +48,18 @@ def parse_output_to_json(generated_output):
             dialogues_raw = dialogues_match.group(1).strip()
             # 다중 speaker와 dialogue 추출
             dialogue_list = re.findall(r"\[speaker\]\s*(.+?)\s*\[dialogue\]\s*(.+?)(?=\[speaker\]|\Z)", dialogues_raw, re.DOTALL)
-            parsed_data["dialogues"] = [
-                {
-                    "speaker": clean_text(speaker.strip()),
-                    "dialogue": clean_text(dialogue.strip())
-                } for speaker, dialogue in dialogue_list
-            ]
+            
+            # 유사성 비교를 통한 중복 제거
+            unique_dialogues = []
+            for speaker, dialogue in dialogue_list:
+                dialogue = clean_text(dialogue.strip())
+                if not any(is_similar(dialogue, existing["dialogue"]) for existing in unique_dialogues):
+                    unique_dialogues.append({
+                        "speaker": clean_text(speaker.strip()),
+                        "dialogue": dialogue
+                    })
+
+            parsed_data["dialogues"] = unique_dialogues
         else:
             parsed_data["dialogues"] = []  # dialogues가 없는 경우 빈 리스트 반환
 
