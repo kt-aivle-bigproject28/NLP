@@ -1,10 +1,11 @@
 from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 
-def load_model_and_tokenizer(model_path, tokenizer_path):
+def load_model_and_tokenizer():
     """
     모델과 토크나이저를 로드합니다.
     """
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
+    model_path = "Scenario_Model"
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
     model = BartForConditionalGeneration.from_pretrained(model_path)
     return tokenizer, model
 
