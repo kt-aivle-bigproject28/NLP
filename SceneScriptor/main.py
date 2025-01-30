@@ -4,7 +4,10 @@ from file_reader import read_file
 from text_processing import preprocess_and_split  
 from model_inference import load_model_and_tokenizer, generate_output
 from json_parser import parse_output_to_json, parse_gpt_result_to_json
-from gpt_api import call_gpt_to_extract_features
+from gpt_api import call_gpt_to_extract_features, initialize_openai  
+
+# api key 불러오기
+initialize_openai() 
 
 def slice_and_process_text(input_file_path):
     """
@@ -14,7 +17,7 @@ def slice_and_process_text(input_file_path):
     if input_txt is None:
         return None
 
-    result = preprocess_and_split(input_txt, slice_num=10000, chunk_size=250)
+    chunks, processed_text  = preprocess_and_split(input_txt, slice_num=10000, chunk_size=250)
     tokenizer, model = load_model_and_tokenizer()
     if tokenizer is None or model is None:
         print("❌ 모델 로딩 실패! 프로그램을 종료합니다.")
@@ -22,21 +25,21 @@ def slice_and_process_text(input_file_path):
 
     final_output = []
     
-    for idx, chunk in enumerate(result):
+    for idx, chunk in enumerate(chunks):
         generated_output = generate_output(tokenizer, model, chunk)
         parsed_output = parse_output_to_json(generated_output)
         final_output.append(parsed_output)
 
-    return final_output
+    return final_output, processed_text  
 
 if __name__ == "__main__":
     input_path = input("텍스트 또는 PDF 파일 경로를 입력하세요: ").strip('""')
-    final_output = slice_and_process_text(input_path)
+    final_output, input_txt  = slice_and_process_text(input_path)
 
     if final_output:
         text = read_file(input_path)
 
-        gpt_result = call_gpt_to_extract_features(text, final_output)
+        gpt_result = call_gpt_to_extract_features(input_txt, final_output)
         if gpt_result:
             parsed_data = parse_gpt_result_to_json(gpt_result)
             print(json.dumps(parsed_data, ensure_ascii=False, indent=4))

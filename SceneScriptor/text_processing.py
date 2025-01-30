@@ -48,4 +48,4 @@ def preprocess_and_split(input_txt, slice_num=10000, chunk_size=250):
     if chunks:
         chunks.pop()
     
-    return chunks
+    return chunks, input_txt
