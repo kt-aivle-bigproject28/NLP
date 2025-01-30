@@ -1,4 +1,4 @@
 torch
 transformers
 regex
-openai == 0.28
+
