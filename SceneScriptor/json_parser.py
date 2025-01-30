@@ -1,7 +1,4 @@
 import re
-
-import re
-
 def clean_text(text, allow_empty=True):
     """
     텍스트에서 불필요한 문자나 특수 문자를 제거합니다.

@@ -5,7 +5,7 @@ def initialize_openai():
     OpenAI API 초기화
     """
    
-    with open(r"C:\Users\User\Documents\GitHub\NLP\SceneScriptor\open_api_key.txt", "r") as file:
+    with open(r"C:\Users\User\Documents\GitHub\NLP\SceneScriptor\open_api_key.txt", "r", encoding="utf-8") as file:
         openai.api_key = file.read().strip()
     
 # 외모 생김새 추출 모델
